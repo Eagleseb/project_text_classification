@@ -6,11 +6,22 @@ from sklearn.utils import shuffle
 from sklearn.model_selection import cross_val_score
 
 
-def build_vector(fn, embeddings):
-    # load vocab
-    with open('output/vocab.pkl', 'rb') as f:
-        vocab = pickle.load(f)
+def load_glove(fn, vocab=None):
+    # Load our own vocab and embeddings
+    if vocab:
+        with open(vocab, 'rb') as f:
+            vocab = pickle.load(f)
+        embeddings = np.load(fn)
+    # Or load some embeddings we downloaded here: https://nlp.stanford.edu/projects/glove/
+    else:
+        with open(fn) as f:
+            lines = f.readlines()
+            vocab, embeddings = zip(*map(lambda r: (r[0], np.array(r[1:], dtype=np.float)), map(str.split, lines)))
+            vocab = {t: i for i, t in enumerate(vocab)}
+    return np.asarray(embeddings), vocab
 
+
+def build_vector(fn, embeddings, vocab):
     # fn can be either a filename or the tweets directly
     if isinstance(fn, str):
         with open(fn) as f:
@@ -22,7 +33,7 @@ def build_vector(fn, embeddings):
     #   for each vocab word in that tweet
     #       vec += embedding[word]
     #   vec = mean(vec)
-    X = np.zeros((len(lines), embeddings.shape[1]))
+    X = np.zeros((len(lines), len(embeddings[0])))
     for i, line in enumerate(lines):
         c = 0
         for t in line.strip().split():
@@ -35,13 +46,17 @@ def build_vector(fn, embeddings):
 
 
 def main():
-    # let's load the embeddings
-    embeddings = np.load('output/embeddings.npy')
+    # let's load the embeddings and the vocab
+    print("Loading GloVe")
+    # embeddings, vocab = load_glove('output/embeddings.npy', 'output/vocab.pkl')
+    embeddings, vocab = load_glove('data/glove.twitter.27B.25d.txt')
 
     # now we must build the features.
-    train_pos = build_vector('data/train_pos.txt', embeddings)
-    train_neg = build_vector('data/train_neg.txt', embeddings)
+    print("Building vectors")
+    train_pos = build_vector('data/train_pos.txt', embeddings, vocab)
+    train_neg = build_vector('data/train_neg.txt', embeddings, vocab)
 
+    print("Preparing data")
     X_train = np.r_[train_pos, train_neg]
     y_train = np.r_[np.ones(train_pos.shape[0]), -1 * np.ones(train_neg.shape[0])]
 
@@ -49,6 +64,7 @@ def main():
     X_train = StandardScaler().fit_transform(X_train)
     X_train = np.c_[np.ones(len(X_train)), X_train]
 
+    print("Training")
     # let's create a SVM with fixed hyperparameters (we must tune that later on)
     # clf = svm.SVC(kernel='rbf', gamma=10**-3, C=1, max_iter=1000)
     clf = ensemble.RandomForestClassifier(n_estimators=10)
@@ -61,6 +77,7 @@ def main():
     """
     # Set to true if you want to test the model and submit predictions to kaggle
     if False:
+        print("Predicting")
         with open('data/test_data.txt') as f:
             id, lines = zip(*map(lambda line: line.split(','), f.readlines()))
         X_test = build_vector(lines, embeddings)
