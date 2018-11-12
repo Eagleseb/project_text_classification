@@ -16,6 +16,7 @@ def main():
 
     print("initializing embeddings")
     embedding_dim = 20
+    np.random.seed(42)
     xs = np.random.normal(size=(cooc.shape[0], embedding_dim))
     ys = np.random.normal(size=(cooc.shape[1], embedding_dim))
 

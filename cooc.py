@@ -11,7 +11,7 @@ def main():
 
     data, row, col = [], [], []
     counter = 1
-    for fn in ['data/train_pos.txt', 'data/train_neg.txt']:
+    for fn in ['data/train_pos_full.txt', 'data/train_neg_full.txt']:
         with open(fn) as f:
             for line in f:
                 tokens = [vocab[t] for t in line.strip().split() if t in vocab]
