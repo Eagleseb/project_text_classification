@@ -1,34 +1,32 @@
 import numpy as np
-import pickle
-from sklearn import svm, ensemble
-from sklearn.preprocessing import normalize, StandardScaler
-from sklearn.utils import shuffle
-from sklearn.model_selection import cross_val_score
+from sklearn import ensemble
 
-from loader import load_data
+from loader import load_data, prepare_data
+
 
 def main():
-    X_train, y_train, X_test, id = load_data('data/glove.twitter.27B.200d.txt',
+    np.random.seed(42)
+    print("Loading data")
+    X_train, y_train, X_test, test_id = load_data('data/glove.twitter.27B.25d.txt',
                                              'data/train_pos.txt', 'data/train_neg.txt', 'data/test_data.txt')
 
-    print("Training")
+    print("Preparing data")
+    X_train, y_train, X_test, test_id = prepare_data(X_train, y_train, X_test, test_id)
+
     # let's create a SVM with fixed hyperparameters (we must tune that later on)
     # clf = svm.SVC(kernel='linear', C=10)
+    # -> SVM are a bad choice because we have too much data
     clf = ensemble.RandomForestClassifier(n_estimators=100)
-    scores = cross_val_score(clf, X_train, y_train, cv=3, n_jobs=-1)
+    # clf = LogisticRegression(C=1)
+    # clf = RidgeClassifier()
 
-    print("Cross validated score: {:.1f} +/- {:.1f}".format(scores.mean() * 100, scores.std() * 100))
+    print("Training")
+    clf.fit(X_train, y_train)
+    print("Predicting")
+    prediction = clf.predict(X_test)
 
-    """
-    Predictions
-    """
-    # Set to true if you want to test the model and submit predictions to kaggle
-    if False:
-        print("Predicting")
-        prediction = clf.predict(X_test)
-
-        np.savetxt("prediction.csv.gz", np.c_[id, prediction], header="Id,Prediction", comments='', delimiter=",",
-                   fmt="%d")
+    np.savetxt("prediction.csv.gz", np.c_[test_id, prediction], header="Id,Prediction", comments='', delimiter=",",
+               fmt="%d")
 
 
 if __name__ == '__main__':
