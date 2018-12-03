@@ -47,11 +47,11 @@ def n_estimators_plot(lower_b, upper_b, num_interval):
     np.random.seed(42)
     
     print("Loading data")
-    X_train, y_train, X_test, test_id = load_data('data/glove.twitter.27B/glove.twitter.27B.25d.txt',
-                                             'data/train_pos.txt', 'data/train_neg.txt', 'data/test_data.txt')
+    X_train, y_train = load_data('data/glove.twitter.27B/glove.twitter.27B.25d.txt',
+                                             'data/train_pos.txt', 'data/train_neg.txt')
 
     print("Preparing data")
-    X_train, y_train, X_test, test_id = prepare_data(X_train, y_train, X_test, test_id)
+    X_train, y_train = prepare_data(X_train, y_train)
     
     
     for idx, v in enumerate(values) :
@@ -69,7 +69,8 @@ def n_estimators_plot(lower_b, upper_b, num_interval):
 
 def main():
 #    print("Loading data")
-#    X_train, y_train = load_data('data/glove.twitter.27B.200d.txt', 'data/train_pos.txt', 'data/train_neg.txt')
+#    X_train, y_train = load_data('data/glove.twitter.27B/glove.twitter.27B.200d.txt',
+#                                 'data/train_pos.txt', 'data/train_neg.txt')
 #    print("Plotting explained variance")
 #    pca(X_train, X_train.shape[1])
 
