@@ -59,6 +59,8 @@ def load_data(glove_fn, train_pos_fn, train_neg_fn, test_fn=None):
     # embeddings, vocab = load_glove('output/embeddings.npy', 'output/vocab.pkl')
     embeddings, vocab = load_glove(glove_fn)
 
+    vocab = remove_stopwords(train_pos_fn, train_neg_fn, vocab, p=0)
+
     # now we must build the features.
     train_pos = build_vector(train_pos_fn, embeddings, vocab)
     train_neg = build_vector(train_neg_fn, embeddings, vocab)
@@ -103,3 +105,37 @@ def prepare_data(X_train, y_train, X_test=None, test_id=None, scaler=None, rando
         return X_train, y_train, X_test, test_id
     else:
         return X_train, y_train
+
+
+def get_frequencies(fn):
+    # fn can be either a filename or the tweets directly
+    if isinstance(fn, str):
+        with open(fn) as f:
+            lines = f.readlines()
+    else:
+        lines = fn
+
+    n = len(lines)
+    frequencies = {}
+    for line in lines:
+        for t in set(line.strip().split()):
+            frequencies[t] = (frequencies.get(t, 0) * n + 1.) / n
+    return frequencies
+
+
+def remove_stopwords(train_pos_fn, train_neg_fn, vocab, p):
+    """
+    Remove words whose frequencies is the same up to p in positive and negative samples.
+    :param freq_pos:
+    :param freq_neg:
+    :param p:
+    :param vocab:
+    :return:
+    """
+    freq_pos = get_frequencies(train_pos_fn)
+    freq_neg = get_frequencies(train_neg_fn)
+    vocab = vocab.copy()
+    for t in list(vocab.keys()):
+        if np.abs(freq_pos.get(t, 0) - freq_neg.get(t, 0)) < p:
+            del vocab[t]
+    return vocab

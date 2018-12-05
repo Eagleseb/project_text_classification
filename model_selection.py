@@ -18,8 +18,7 @@ def main():
     # -> SVM are a bad choice because we have too much data
     clf = ensemble.RandomForestClassifier(n_estimators=100)
     param_grid = [
-        # {'n_estimators': [10, 20, 50, 100]},
-        {'max_depth': np.int(np.log(X_train.shape[1])) * np.array([1, 2, 10, 100])}
+        {'n_estimators': [10]}
     ]
 
     cv = GridSearchCV(clf, param_grid=param_grid, cv=3, return_train_score=True)
