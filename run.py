@@ -25,9 +25,12 @@ def main():
     print("Predicting")
     prediction = clf.predict(X_test)
 
-    np.savetxt("prediction.csv.gz", np.c_[test_id, prediction], header="Id,Prediction", comments='', delimiter=",",
-               fmt="%d")
-
+    # np.savetxt("prediction.csv.gz", np.c_[test_id, prediction], header="Id,Prediction", comments='', delimiter=",",
+    #           fmt="%d")
+    
+    print(np.c_[test_id, prediction])
+    
+    print(X_train.shape)
 
 if __name__ == '__main__':
     main()
