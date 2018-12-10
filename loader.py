@@ -46,6 +46,7 @@ def build_vector(fn, embeddings, vocab):
             X[i] /= c
     return X
 
+
 def load_data(glove_fn, train_pos_fn, train_neg_fn, test_fn=None):
     """
     Load the dataset

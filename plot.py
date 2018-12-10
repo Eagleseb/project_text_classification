@@ -53,6 +53,7 @@ def n_estimators_plot(X_train, y_train, lower_b, upper_b, num_interval):
     # plt.axvline(x=(n_components+1)**.95 - 1, ymin=0, ymax=1, c="r")
     plt.legend()
     plt.title("Performance on the cross-validation for different numbers of estimators with Random Forest Classifier")
+    plt.savefig('fig/estimators.eps')
         
     return scores_estimators
 
@@ -75,19 +76,19 @@ def plot_frequencies(train_pos, train_neg):
 
     # first_significant = np.argwhere(list(map(lambda p: abs(p[1]) > 0.00001, abs_diff)))[0, 0]
 
-    x = np.arange(50)
+    x = np.linspace(0, 100, 50)
     plt.figure()
     plt.barh(x, list(map(lambda p: p[1], diff))[:50], color='g')
     plt.yticks(x, list(map(lambda p: p[0], diff))[:50])
-    plt.show()
+    plt.savefig('output/positive_words.eps')
     plt.figure()
     plt.barh(x, list(map(lambda p: p[1], diff))[-50:], color='r')
     plt.yticks(x, list(map(lambda p: p[0], diff))[-50:])
-    plt.show()
+    plt.savefig('output/negative_words.eps')
     plt.figure()
     plt.plot(np.arange(len(abs_diff)), list(map(lambda p: abs(p[1]), abs_diff)), color='orange')
     plt.semilogy()
-    plt.show()
+    plt.savefig('output/freq_diff.eps')
 
 
 def main():
