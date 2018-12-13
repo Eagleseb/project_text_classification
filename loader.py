@@ -47,7 +47,7 @@ def build_vector(fn, embeddings, vocab):
     return X
 
 
-def load_data(glove_fn, train_pos_fn, train_neg_fn, test_fn=None):
+def load_data(glove_fn, train_pos_fn, train_neg_fn, test_fn=None, p=0):
     """
     Load the dataset
     :param glove_fn:
@@ -60,7 +60,7 @@ def load_data(glove_fn, train_pos_fn, train_neg_fn, test_fn=None):
     # embeddings, vocab = load_glove('output/embeddings.npy', 'output/vocab.pkl')
     embeddings, vocab = load_glove(glove_fn)
 
-    vocab = remove_stopwords(train_pos_fn, train_neg_fn, vocab, p=0)
+    vocab = remove_stopwords(train_pos_fn, train_neg_fn, vocab, p=p)
 
     # now we must build the features.
     train_pos = build_vector(train_pos_fn, embeddings, vocab)
@@ -73,7 +73,7 @@ def load_data(glove_fn, train_pos_fn, train_neg_fn, test_fn=None):
         with open(test_fn) as f:
             test_id, lines = zip(*map(lambda line: line.split(','), f.readlines()))
         X_test = build_vector(lines, embeddings, vocab)
-        return X_train, y_train, X_test, test_id
+        return X_train, y_train, X_test, np.array(test_id, dtype=np.int)
     else:
         return X_train, y_train
 
@@ -94,7 +94,8 @@ def prepare_data(X_train, y_train, X_test=None, test_id=None, scaler=None, rando
     # Let's create a pipeline to transform the data
     # according to the pca, (n_features+1)**p - 1 account for p*100% of the dataset total variance
     # it's a lower bound
-    pipeline = Pipeline([('pca', PCA(np.int(np.ceil((X_train.shape[1]+1)**.95 - 1)))), ('scaler', scaler)])
+    # removed PCA : ('pca', PCA(np.int(np.ceil((X_train.shape[1]+1)**.95 - 1)))),
+    pipeline = Pipeline([('scaler', scaler)])
 
     X_train, y_train = shuffle(X_train, y_train, random_state=random_state)
     X_train = pipeline.fit_transform(X_train)

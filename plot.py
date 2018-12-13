@@ -77,11 +77,11 @@ def plot_frequencies(train_pos, train_neg):
     # first_significant = np.argwhere(list(map(lambda p: abs(p[1]) > 0.00001, abs_diff)))[0, 0]
 
     x = np.linspace(0, 100, 50)
-    plt.figure()
+    plt.figure(figsize=(10, 11))
     plt.barh(x, list(map(lambda p: p[1], diff))[:50], color='g')
     plt.yticks(x, list(map(lambda p: p[0], diff))[:50])
     plt.savefig('output/positive_words.eps')
-    plt.figure()
+    plt.figure(figsize=(10, 11))
     plt.barh(x, list(map(lambda p: p[1], diff))[-50:], color='r')
     plt.yticks(x, list(map(lambda p: p[0], diff))[-50:])
     plt.savefig('output/negative_words.eps')

@@ -8,34 +8,50 @@ Created on Sun Dec  9 13:28:22 2018
 
 import numpy as np
 from sklearn import ensemble
+import matplotlib.pyplot as plt
 
 from loader import load_data, prepare_data
 from sklearn import ensemble
 from sklearn.decomposition import PCA
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import cross_val_score, cross_validate
 
 from feature_expansion import feature_expansion
 
 
 np.random.seed(42)
-print("Loading data")
-X_train, y_train, X_test, test_id = load_data('data/glove.twitter.27B/glove.twitter.27B.25d.txt',
-                                         'data/train_pos.txt', 'data/train_neg.txt', 'data/test_data.txt')
-
-print("Preparing data")
-X_train, y_train = prepare_data(X_train, y_train)
-improved_X_train = feature_expansion(X_train)
+# improved_X_train = feature_expansion(X_train)
 
 # let's create a SVM with fixed hyperparameters (we must tune that later on)
 # clf = svm.SVC(kernel='linear', C=10)
 # -> SVM are a bad choice because we have too much data
-clf = ensemble.RandomForestClassifier(n_estimators=100)
+clf = ensemble.RandomForestClassifier(n_estimators=10)
 # clf = LogisticRegression(C=1)
 # clf = RidgeClassifier()
 
+test_scores = []
 
-print("Training")
-clf.fit(improved_X_train, y_train)
-scores = cross_val_score(clf, improved_X_train, y_train, cv=3, n_jobs=-1)
+ps = np.logspace(-5, -3.6, 15)
+for p in ps:
+    print("Loading data")
+    data = load_data('data/glove.twitter.27B/glove.twitter.27B.25d.txt',
+                             'data/train_pos.txt', 'data/train_neg.txt', p=p)
+    print("Preparing data")
+    X_train, y_train = prepare_data(*data)
+    print("Training")
+    scores = cross_val_score(clf, X_train, y_train, cv=3, n_jobs=-1)
+    test_scores.append(scores)
 
-print("Cross validated score: {:.1f} +/- {:.1f}".format(scores.mean() * 100, scores.std() * 100))
+    # print("Cross validated score: {:.1f} +/- {:.1f}".format(
+    #    scores['test_score'].mean() * 100, scores['test_score'].std() * 100))
+
+test_scores = np.array(test_scores)
+
+mean_test = np.mean(test_scores, 1)
+std_test = np.std(test_scores, 1)
+
+plt.errorbar(ps, mean_test, std_test, c="b", label="Test score")
+plt.semilogx()
+plt.savefig('output/remove_lowfreq.eps')
+
+best = np.argmax(mean_test)
+print("Best accuracy: {:.2f} with p=10**{:.2f}".format(mean_test[best], np.log10(ps[best])))
