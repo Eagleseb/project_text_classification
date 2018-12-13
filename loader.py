@@ -2,6 +2,7 @@ import numpy as np
 import pickle
 from sklearn import svm, ensemble
 from sklearn.preprocessing import normalize, StandardScaler
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.utils import shuffle
 from sklearn.pipeline import Pipeline
 from sklearn.decomposition import PCA
@@ -47,6 +48,16 @@ def build_vector(fn, embeddings, vocab):
     return X
 
 
+def build_tfidf(*filenames):
+    lines = []
+    for fn in filenames:
+        with open(fn, 'r') as f:
+            lines += f.readlines()
+    vectorizer = TfidfVectorizer(analyzer='word', min_df=10)
+    matrix = vectorizer.fit_transform(lines)
+    return dict(zip(vectorizer.get_feature_names(), vectorizer.idf_))
+
+
 def load_data(glove_fn, train_pos_fn, train_neg_fn, test_fn=None, p=0):
     """
     Load the dataset
@@ -62,12 +73,14 @@ def load_data(glove_fn, train_pos_fn, train_neg_fn, test_fn=None, p=0):
 
     vocab = remove_stopwords(train_pos_fn, train_neg_fn, vocab, p=p)
 
+    # tfidf = build_tfidf(train_pos_fn, train_neg_fn)
+
     # now we must build the features.
     train_pos = build_vector(train_pos_fn, embeddings, vocab)
     train_neg = build_vector(train_neg_fn, embeddings, vocab)
 
     X_train = np.r_[train_pos, train_neg]
-    y_train = np.r_[np.ones(train_pos.shape[0]), -1 * np.ones(train_neg.shape[0])]
+    y_train = np.r_[np.ones(train_pos.shape[0]), np.zeros(train_neg.shape[0])]
 
     if test_fn is not None:
         with open(test_fn) as f:
