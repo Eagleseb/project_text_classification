@@ -30,11 +30,11 @@ clf = ensemble.RandomForestClassifier(n_estimators=10)
 
 test_scores = []
 
-ps = np.logspace(-5, -3.6, 15)
+ps = np.logspace(-5, -4, 5)
 for p in ps:
     print("Loading data")
     data = load_data('data/glove.twitter.27B/glove.twitter.27B.25d.txt',
-                             'data/train_pos.txt', 'data/train_neg.txt', p=p)
+                             'data/train_pos_full.txt', 'data/train_neg_full.txt', p=p)
     print("Preparing data")
     X_train, y_train = prepare_data(*data)
     print("Training")

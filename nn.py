@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 
 from loader import load_data, prepare_data
 
-input_dim = 100
+input_dim = 200
 
 np.random.seed(42)
 print("Loading data")
@@ -25,7 +25,8 @@ x_train, x_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=
 
 print("Building model")
 model = Sequential()
-model.add(Dense(32, activation='relu', input_dim=input_dim))
+model.add(Dense(64, activation='relu', input_dim=input_dim))
+model.add(Dense(32, activation='relu', input_dim=64))
 model.add(Dense(1, activation='sigmoid'))
 model.compile(optimizer='rmsprop',
               loss='binary_crossentropy',

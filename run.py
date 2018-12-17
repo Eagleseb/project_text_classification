@@ -8,8 +8,8 @@ def main():
     np.random.seed(42)
     print("Loading data")
     X_train, y_train, X_test, test_id =\
-        load_data('data/glove.twitter.27B/glove.twitter.27B.200d.txt',
-                  'data/train_pos.txt', 'data/train_neg.txt', 'data/test_data.txt',
+        load_data('data/glove.twitter.27B/glove.twitter.27B.25d.txt',
+                  'data/train_pos_full.txt', 'data/train_neg_full.txt', 'data/test_data.txt',
                   p=10**-4.4)
 
     print("Preparing data")

@@ -17,9 +17,14 @@ def load_glove(fn, vocab=None):
         embeddings = np.load(fn)
     # Or load some embeddings we downloaded here: https://nlp.stanford.edu/projects/glove/
     else:
-        with open(fn) as f:
-            lines = f.readlines()
-            vocab, embeddings = zip(*map(lambda r: (r[0], np.array(r[1:], dtype=np.float)), map(str.split, lines)))
+        with open(fn, 'r') as f:
+            embeddings = []
+            vocab = {}
+            for line in f:
+                l = line.split()
+                token, embedding = l[0], np.array(l[1:], dtype=np.float)
+                vocab[token] = len(embeddings)
+                embeddings.append(embedding)
             vocab = {t: i for i, t in enumerate(vocab)}
     return np.asarray(embeddings), vocab
 
@@ -27,7 +32,7 @@ def load_glove(fn, vocab=None):
 def build_vector(fn, embeddings, vocab):
     # fn can be either a filename or the tweets directly
     if isinstance(fn, str):
-        with open(fn) as f:
+        with open(fn, 'r') as f:
             lines = f.readlines()
     else:
         lines = fn
@@ -45,6 +50,36 @@ def build_vector(fn, embeddings, vocab):
                 c += 1
         if c > 0:
             X[i] /= c
+    return X
+
+
+def build_vector_nn(fn, embeddings, vocab, max_words=200):
+    """
+    Build a 2D tensor with shape: (batch_size, max_words).
+    :param fn:
+    :param embeddings:
+    :param vocab:
+    :param max_words:
+    :return:
+    """
+    # fn can be either a filename or the tweets directly
+    if isinstance(fn, str):
+        with open(fn, 'r') as f:
+            lines = f.readlines()
+    else:
+        lines = fn
+
+    # for each tweet
+    #   for each vocab word in that tweet
+    #       vec += embedding[word]
+    #   vec = mean(vec)
+    X = np.zeros((len(lines), max_words))
+    for i, line in enumerate(lines):
+        j = 0
+        for t in line.strip().split():
+            if t in vocab and j < max_words:
+                X[i, j] = vocab[t]
+            j += 1
     return X
 
 
@@ -83,12 +118,43 @@ def load_data(glove_fn, train_pos_fn, train_neg_fn, test_fn=None, p=0):
     y_train = np.r_[np.ones(train_pos.shape[0]), np.zeros(train_neg.shape[0])]
 
     if test_fn is not None:
-        with open(test_fn) as f:
+        with open(test_fn, 'r') as f:
             test_id, lines = zip(*map(lambda line: line.split(','), f.readlines()))
         X_test = build_vector(lines, embeddings, vocab)
         return X_train, y_train, X_test, np.array(test_id, dtype=np.int)
     else:
         return X_train, y_train
+
+
+def load_data_nn(glove_fn, train_pos_fn, train_neg_fn, test_fn=None, max_words=200, random_state=42):
+    """
+    Load the dataset
+    :param glove_fn:
+    :param train_pos_fn:
+    :param train_neg_fn:
+    :param test_fn: (optionnal) if provided, return the test vectors along their ids aswell
+    :return: embeddings, vocab, X_train, y_train or embeddings, vocab, X_train, y_train, X_test, test_id if test_fn is provided
+    """
+    # let's load the embeddings and the vocab
+    # embeddings, vocab = load_glove('output/embeddings.npy', 'output/vocab.pkl')
+    embeddings, vocab = load_glove(glove_fn)
+
+    # now we must build the features.
+    train_pos = build_vector_nn(train_pos_fn, embeddings, vocab, max_words)
+    train_neg = build_vector_nn(train_neg_fn, embeddings, vocab, max_words)
+
+    X_train = np.r_[train_pos, train_neg]
+    y_train = np.r_[np.ones(train_pos.shape[0]), np.zeros(train_neg.shape[0])]
+    X_train, y_train = shuffle(X_train, y_train, random_state=random_state)
+
+    if test_fn is not None:
+        with open(test_fn, 'r') as f:
+            test_id, lines = zip(*map(lambda line: line.split(','), f.readlines()))
+        X_test = build_vector_nn(lines, embeddings, vocab, max_words)
+        X_test, test_id = shuffle(X_test, test_id, random_state=random_state)
+        return embeddings, vocab, X_train, y_train, X_test, np.array(test_id, dtype=np.int)
+    else:
+        return embeddings, vocab, X_train, y_train
 
 
 def prepare_data(X_train, y_train, X_test=None, test_id=None, scaler=None, random_state=42):
@@ -102,7 +168,7 @@ def prepare_data(X_train, y_train, X_test=None, test_id=None, scaler=None, rando
     if scaler is None:
         scaler = StandardScaler()
     elif scaler == "no_scale":
-        scaler = StandardScaler(with_mean=False, with_std=False)
+        scaler = StandardScaler(copy=False, with_mean=False, with_std=False)
 
     # Let's create a pipeline to transform the data
     # according to the pca, (n_features+1)**p - 1 account for p*100% of the dataset total variance
@@ -125,7 +191,7 @@ def prepare_data(X_train, y_train, X_test=None, test_id=None, scaler=None, rando
 def get_frequencies(fn):
     # fn can be either a filename or the tweets directly
     if isinstance(fn, str):
-        with open(fn) as f:
+        with open(fn, 'r') as f:
             lines = f.readlines()
     else:
         lines = fn
