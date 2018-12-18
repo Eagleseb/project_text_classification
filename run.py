@@ -8,7 +8,7 @@ def main():
     np.random.seed(42)
     print("Loading data")
     X_train, y_train, X_test, test_id =\
-        load_data('data/glove.twitter.27B/glove.twitter.27B.25d.txt',
+        load_data('data/glove.twitter.27B/glove.twitter.27B.200d.txt',
                   'data/train_pos_full.txt', 'data/train_neg_full.txt', 'data/test_data.txt',
                   p=10**-4.4)
 
@@ -26,7 +26,7 @@ def main():
     clf.fit(X_train, y_train)
     print("Predicting")
     prediction = clf.predict(X_test)
-
+    prediction[prediction == 0] = -1
     np.savetxt("output/prediction.csv", np.c_[test_id, prediction],
                header="Id,Prediction", comments='', delimiter=",", fmt="%d")
 

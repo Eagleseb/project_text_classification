@@ -79,7 +79,7 @@ def build_vector_nn(fn, embeddings, vocab, max_words=200):
         for t in line.strip().split():
             if t in vocab and j < max_words:
                 X[i, j] = vocab[t]
-            j += 1
+                j += 1
     return X
 
 
