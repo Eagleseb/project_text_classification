@@ -1,31 +1,27 @@
 import numpy as np
-from sklearn import ensemble
+from keras.models import load_model
 
-from loader import load_data, prepare_data
+from loader import load_data_nn
+
+reload_model = False
+training = True
+max_words, emb_dim = 64, 200
+
+glove_fn = 'data/glove.twitter.27B/glove.twitter.27B.{}d.txt'.format(emb_dim)
+train_pos_fn, train_neg_fn = 'data/train_pos_full.txt', 'data/train_neg_full.txt'
 
 
 def main():
     np.random.seed(42)
     print("Loading data")
-    X_train, y_train, X_test, test_id =\
-        load_data('data/glove.twitter.27B/glove.twitter.27B.200d.txt',
-                  'data/train_pos_full.txt', 'data/train_neg_full.txt', 'data/test_data.txt',
-                  p=10**-4.4)
+    embeddings, vocab, x_train, y_train, x_test, test_id = load_data_nn(glove_fn, train_pos_fn, train_neg_fn,
+                                                                        'data/test_data.txt', max_words=max_words)
 
-    print("Preparing data")
-    X_train, y_train, X_test, test_id = prepare_data(X_train, y_train, X_test, test_id)
+    print("Building model")
+    model = load_model('output/rnn_model.epoch3.h5')
 
-    # let's create a SVM with fixed hyperparameters (we must tune that later on)
-    # clf = svm.SVC(kernel='linear', C=10)
-    # -> SVM are a bad choice because we have too much data
-    clf = ensemble.RandomForestClassifier(n_estimators=100)
-    # clf = LogisticRegression(C=1)
-    # clf = RidgeClassifier()
-
-    print("Training")
-    clf.fit(X_train, y_train)
     print("Predicting")
-    prediction = clf.predict(X_test)
+    prediction = model.predict_classes(x_test, batch_size=128, verbose=1)
     prediction[prediction == 0] = -1
     np.savetxt("output/prediction.csv", np.c_[test_id, prediction],
                header="Id,Prediction", comments='', delimiter=",", fmt="%d")

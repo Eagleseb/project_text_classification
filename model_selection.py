@@ -8,8 +8,8 @@ from loader import load_data, prepare_data
 def main():
     np.random.seed(42)
     print("Loading data")
-    data = load_data('data/glove.twitter.27B/glove.twitter.27B.25d.txt', 'data/train_pos_full.txt',
-                     'data/train_neg_full.txt', p=10**-4.4)
+    data = load_data('data/glove.twitter.27B/glove.twitter.27B.200d.txt', 'data/train_pos.txt',
+                     'data/train_neg.txt', p=10**-4.4)
 
     print("Preparing data")
     X_train, y_train = prepare_data(*data)

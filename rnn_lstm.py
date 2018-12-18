@@ -1,18 +1,20 @@
 """
 Keras rnn implementation following
-https://heartbeat.fritz.ai/coreml-with-glove-word-embedding-and-recursive-neural-network-part-2-d72c1a66b028
+https://machinelearningmastery.com/sequence-classification-lstm-recurrent-neural-networks-python-keras/
+
+run with `docker run -it --rm -v $PWD:/usr/src/app --runtime=nvidia py-app ipython $file`
 """
 
 import numpy as np
 from keras.layers import Embedding, Dense, GRU, LSTM, \
-    TimeDistributed, Activation, Flatten, Dropout
+    TimeDistributed, Activation, Flatten, Dropout, Conv1D, MaxPooling1D
 from keras.models import Sequential, load_model
 from keras.callbacks import TensorBoard
 
 from loader import load_data_nn
 
-reload_model = False
-training = True
+reload_model = True
+training = False
 max_words, emb_dim = 64, 200
 
 glove_fn = 'data/glove.twitter.27B/glove.twitter.27B.{}d.txt'.format(emb_dim)
@@ -36,14 +38,10 @@ if reload_model:
 else:
     model = Sequential([
         Embedding(len(vocab), emb_dim, weights=[embeddings], input_length=max_words, trainable=False),
-        GRU(emb_dim, batch_size=1, input_shape=(None, emb_dim), return_sequences=True),
-        # LSTM(emb_dim, batch_size=1, input_shape=(None, emb_dim), return_sequences=True),
-        TimeDistributed(Dense(64)),
-        Activation('relu'),
-        TimeDistributed(Dense(32)),
-        Activation('relu'),
-        Flatten(),
-        Dropout(.1),
+        Conv1D(filters=32, kernel_size=3, padding='same', activation='relu'),
+        MaxPooling1D(pool_size=2),
+        LSTM(100),
+        Dropout(.1,),
         Dense(1, activation='sigmoid')
     ])
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
@@ -51,7 +49,7 @@ else:
 tensorBoardCallback = TensorBoard(log_dir='./logs', write_graph=True)
 print("Training")
 if training:
-    model.fit(x_train, y_train, callbacks=[tensorBoardCallback], validation_data=(x_test, y_test), epochs=1, batch_size=128, verbose=1)
+    model.fit(x_train, y_train, callbacks=[tensorBoardCallback], validate_data=(x_test, y_test), epochs=1, batch_size=128, verbose=1)
 else:
     model.fit(x_train, y_train, callbacks=[tensorBoardCallback], epochs=1, batch_size=128, verbose=1)
 model.save('output/rnn_model.h5')
