@@ -70,9 +70,7 @@ def build_vector_nn(fn, embeddings, vocab, max_words=200):
         lines = fn
 
     # for each tweet
-    #   for each vocab word in that tweet
-    #       vec += embedding[word]
-    #   vec = mean(vec)
+    # vec = [embedding[word] for each word in tweet]
     X = np.zeros((len(lines), max_words))
     for i, line in enumerate(lines):
         j = 0
@@ -106,6 +104,7 @@ def load_data(glove_fn, train_pos_fn, train_neg_fn, test_fn=None, p=0):
     # embeddings, vocab = load_glove('output/embeddings.npy', 'output/vocab.pkl')
     embeddings, vocab = load_glove(glove_fn)
 
+    # Remove words with low meaning
     vocab = remove_stopwords(train_pos_fn, train_neg_fn, vocab, p=p)
 
     # tfidf = build_tfidf(train_pos_fn, train_neg_fn)

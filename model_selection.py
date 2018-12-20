@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn import ensemble
 from sklearn.model_selection import GridSearchCV, cross_val_score
+from sklearn.linear_model import LogisticRegression
 
 from loader import load_data, prepare_data
 
@@ -17,6 +18,7 @@ def main():
     # let's create a SVM with fixed hyperparameters (we must tune that later on)
     # clf = svm.SVC(kernel='linear', C=10)
     # -> SVM are a bad choice because we have too much data
+    # clf = LogisticRegression()
     clf = ensemble.RandomForestClassifier(n_estimators=100)
 
     print("Cross validating")

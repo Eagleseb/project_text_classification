@@ -1,56 +1,29 @@
 # Project Text Sentiment Classification
 
-The task of this competition is to predict if a tweet message used to contain a positive :) or negative :( smiley, by considering only the remaining text.
+## Abstract:
 
-As a baseline, we here provide sample code using word embeddings to build a text classifier system.
+The aim of this project is to classify tweets into a 'happy' and a 'sad' class.
+To fulfill that aim, we implemented different machine learning algorithms and
+finally choose a Recurrent Neural Network as the best method.
+We achieved an accuracy of about 86% which is close to the state of the art.
 
-Submission system environment setup:
+## Requirements:
+- Python 3
+- Tensorflow
+- Keras
+- ScikitLearn
 
-1. The dataset is available from the Kaggle page, as linked in the PDF project description
+## How to reproduce:
 
- Download the provided datasets `twitter-datasets.zip`.
+1. Download the datasets on [CrowdAI](https://www.crowdai.org/challenges/epfl-ml-text-classification/dataset_files)
+2. Put them into a directory called data/
+3. Download twitter GloVe embeddings over [here](http://nlp.stanford.edu/data/glove.twitter.27B.zip)
+4. Put them into a directory called data/glove.twitter.27B
+5. Create an empty directory called output/ and put into it the trained model you downloaded over [here](https://we.tl/t-tR2JoaqPrR)
+6. Run the file run.py with python 3. It should produce a file prediction.csv that you can upload directly on CrowdAI
 
-2. To submit your solution to the online evaluation system, we require you to prepare a “.csv” file of the same structure as sampleSubmission.csv (the order of the predictions does not matter, but make sure the tweet ids and predictions match). Your submission is evaluated according to the classification error (number of misclassified tweets) of your predictions.
-
-*Working with Twitter data:* We provide a large set of training tweets, one tweet per line. All tweets in the file train pos.txt (and the train pos full.txt counterpart) used to have positive smileys, those of train neg.txt used to have a negative smiley. Additionally, the file test data.txt contains 10’000 tweets without any labels, each line numbered by the tweet-id.
-
-Your task is to predict the labels of these tweets, and upload the predictions to kaggle. Your submission file for the 10’000 tweets must be of the form `<tweet-id>`, `<prediction>`, see `sampleSubmission.csv`.
-
-Note that all tweets have already been pre-processed so that all words (tokens) are separated by a single whitespace. Also, the smileys (labels) have been removed.
-
-## Classification using Word-Vectors
-
-For building a good text classifier, it is crucial to find a good feature representation of the input text. Here we will start by using the word vectors (word embeddings) of each word in the given tweet. For simplicity of a first baseline, we will construct the feature representation of the entire text by simply averaging the word vectors.
-
-Below is a solution pipeline with an evaluation step:
-
-### Generating Word Embeddings: 
-
-Load the training tweets given in `pos_train.txt`, `neg_train.txt` (or a suitable subset depending on RAM requirements), and construct a a vocabulary list of words appearing at least 5 times. This is done running the following commands. Note that the provided `cooc.py` script can take a few minutes to run, and displays the number of tweets processed.
-
-```
-./build_vocab.sh
-./cut_vocab.sh
-python3 pickle_vocab.py
-python3 cooc.py
-```
-
-Now given the co-occurrence matrix and the vocabulary, it is not hard to train GloVe word embeddings, that is to compute an embedding vector for each word in the vocabulary. We suggest to implement SGD updates to train the matrix factorization, as in
-
-```
-python3 glove_solution.py
-```
-
-Once you tested your system on the small set of 10% of all tweets, we suggest you run on the full datasets `pos_train_full.txt`, `neg_train_full.txt`
-
-### Building a Text Classifier:
-1. Construct Features for the Training Texts: Load the training tweets and the built GloVe word embeddings. Using the word embeddings, construct a feature representation of each training tweet (by averaging the word vectors over all words of the tweet).
-
-2. Train a Linear Classifier: Train a linear classifier (e.g. logistic regression or SVM) on your constructed features, using the scikit learn library, or your own code from the earlier labs. Recall that the labels indicate if a tweet used to contain a :) or :( smiley.
-
-3. Prediction: Predict labels for all tweets in the test set.
-
-4. Submission / Evaluation: Submit your predictions to kaggle, and verify the obtained misclassification error score. (You can also use a local separate validation set to get faster feedback on the accuracy of your system). Try to tune your system for best evaluation score.
-
-## Extensions:
-Naturally, there are many ways to improve your solution, both in terms of accuracy and computation speed. More advanced techniques can be found in the recent literature.
+## Content:
+- **run.py**, a simple script that load the saved model and predict the classes of the test dataset
+- **mode_selection.py**, a simple script that we used to cross-validate the accuracy of different classification algorithms
+- **rnn.py**, the implementation of our Recurrent Neural Network
+- **plot.py**, different functions that we used to make the plot of the report
